@@ -1,0 +1,191 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login</title>
+  <style>
+  body {
+      font-family: Arial, sans-serif;
+      background-color: #0d0d0d;
+      text-align: center;
+      padding: 20px;
+    
+    }
+
+    .logo {
+    }
+
+    .logo img {
+      width: 300px;
+    }
+    .container {
+      max-width: 400px;
+      
+      margin-bottom: 10px;
+      background: #21160c7a;
+      padding-top:5px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-color: #ff9800;
+    }
+    h2 {
+      color: #ff9800;
+      text-shadow: #ff9900,
+      #ff6600,
+      #ff3300
+    }
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 3px solid #ccc;
+      border-radius: 5px;
+      border-color : #ff9800;
+    }
+    button {
+      background-color:#ff9800;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      width: 300px;
+    }
+    button:hover {
+      background-color: #ffad08;
+    }
+    #message {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #ff9800;
+    }
+    .bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 30px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background-color: #111;
+  padding: 0.5rem 0;
+  border-top: 1px solid #333;
+  z-index: 1000;
+}
+
+.bottom-nav .nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  color: #ff9800;
+}
+
+.bottom-nav .nav-btn.active,
+.bottom-nav .nav-btn:hover {
+  opacity: 1;
+}
+
+/* Only the icon is clickable; style it as needed */
+.nav-icon {
+  border-radius: 4px;
+  background-color: black;
+  size: 35px;
+  align-items: center;
+  color: #ff9800;
+}
+
+/* Ensure that the text in span is also in #ff9800 */
+.bottom-nav .nav-btn span {
+  color: white;
+}
+
+/* Icon sizes */
+.fa-circle-user {
+  font-size: 20px;
+}
+.fa-circle-dollar-to-slot {
+  font-size: 20px;
+}
+.fa-house {
+  font-size: 20px;
+}
+* placeholder for an icon */
+    }
+    .fa-circle-user {
+      font-size: 20px;
+    }
+    .fa-circle-dollar-to-slot {
+      font-size: 20px;
+    }
+    .fa-house {
+      font-size: 20px;
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <img src="./stakelogo-removebg-preview.png" alt="pnglogo">
+  </div>
+  <div class="container">
+    <h2>Login</h2>
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <input type="password" id="password" placeholder="Enter your password" required>
+    <button onclick="login()">Login</button>
+    <p id="message"></p>
+    <p><h6 style="color: #ff9800;">Don't have an account?</h6> <a href="signup.html" style="color: #ffad08;">Sign Up</a></p>
+  </div>
+
+  <script>
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/";
+
+    function sanitizeEmail(email) {
+        return email.replace(/\./g, ",");
+    }
+
+    async function login() {
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value.trim();
+        const messageEl = document.getElementById("message");
+
+        if (!email || !password) {
+            messageEl.innerText = "Please enter both email and password.";
+            return;
+        }
+
+        const userKey = sanitizeEmail(email);
+
+        try {
+            const res = await fetch(`${DB_URL}users/${userKey}.json`);
+            const data = await res.json();
+
+            if (!data) {
+                messageEl.innerText = "User not found!";
+                return;
+            }
+            if (data.password !== password) {
+                messageEl.innerText = "Invalid password!";
+                return;
+            }
+
+            messageEl.innerText = "Login Successful!";
+            localStorage.setItem("userEmail", email);
+            localStorage.setItem("userKey", userKey);
+
+            setTimeout(() => {
+                window.location.href = "home.html";
+            }, 1000);
+        } catch (error) {
+            console.error("Login error:", error);
+            messageEl.innerText = "Error logging in.";
+        }
+    }
+</script>
+
+</body>
+</html>
+ 
