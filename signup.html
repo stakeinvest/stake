@@ -1,0 +1,130 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sign Up</title>
+  <style>
+    
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0d0d0d;
+      text-align: center;
+      
+    
+    }
+    .logo {
+
+    }
+    .logo img {
+      width: 300px;
+      padding: 20px;
+    }
+    .container {
+      max-width: 400px;
+      margin: 50px auto;
+      background: #21160c7a;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      font-color: #ff9800;
+    }
+    h2 {
+      color: #ff9800;
+      text-shadow: #ff9900,
+      #ff6600,
+      #ff3300
+    }
+    input, button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 3px solid #ccc;
+      border-radius: 5px;
+      border-color : #ff9800;
+    }
+    button {
+      background-color:#ff9800;
+      color: #fff;
+      cursor: pointer;
+      border: none;
+      width: 300px;
+    }
+    button:hover {
+      background-color: #ffad08;
+    }
+    #message {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #ff9800;
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">
+    <img src="stakelogo-removebg-preview.png" alt="pnglogo">
+  </div
+  <div class="container">
+    <h2>Sign Up</h2>
+    <input type="email" id="email" placeholder="Enter your email" required>
+    <input type="password" id="password" placeholder="Enter your password" required>
+    <button onclick="signup()">Sign Up</button>
+    <p id="message"></p>
+    <p><h6 style="color: #ff9800;">Already have an account?</h6> <a href="login.html" style="color: #ffad08;">Log in</a></p>
+  </div>
+  
+  <script>
+    // Replace with your actual Firebase Realtime Database URL (ending with a slash)
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/";
+    
+    // Sanitize email for use as Firebase key (replace '.' with ',')
+    function sanitizeEmail(email) {
+      return email.replace(/\./g, ",");
+    }
+
+    async function signup() {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const messageEl = document.getElementById("message");
+      
+      if (!email || !password) {
+        messageEl.innerText = "Please enter both email and password.";
+        return;
+      }
+      
+      const userKey = sanitizeEmail(email);
+      
+      try {
+        // Check if user already exists
+        const res = await fetch(DB_URL + "users/" + userKey + ".json");
+        const data = await res.json();
+        console.log("User data from DB:", data);
+        if (data !== null) { // If data is not null, user exists.
+          messageEl.innerText = "User already exists!";
+          return;
+        }
+        
+        // Create new user with default balance 0
+        const userData = { email: email, password: password, balance: 0 };
+        const createRes = await fetch(DB_URL + "users/" + userKey + ".json", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(userData)
+        });
+        
+        if (createRes.ok) {
+          messageEl.innerText = "Signup Successful! You can now log in.";
+        } else {
+          messageEl.innerText = "Error creating user.";
+        }
+      } catch (error) {
+        console.error("Signup error:", error);
+        messageEl.innerText = "Error signing up.";
+      }
+    }
+  </script>
+</body>
+</html>
+ 

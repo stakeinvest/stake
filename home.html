@@ -1,0 +1,527 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>stake</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" 
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <!-- Auto-redirect script -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      let userKey = localStorage.getItem("userKey");
+      if (!userKey) {
+        window.location.href = "login.html";
+      }
+    });
+  </script>
+  
+  <style>
+    /* General Styles */
+    body {
+      margin: 0;
+      padding: 0;
+      padding-top: 40px;
+      font-family: 'Arial', sans-serif;
+      background-color: #0d0d0d;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+    .balance-section {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-top: 100px;
+    }
+    .balance-info {
+      text-align: left;
+    }
+    #balance {
+      font-size: 36px;
+      font-weight: bold;
+      color: #ff9800;
+    }
+    #btcBalance {
+      font-size: 12px;
+      color: #fff;
+      margin-top: 2px;
+    }
+    #depositButton {
+      padding: 10px 15px;
+      background-color: #ff9800;
+      border: none;
+      color: black;
+      font-size: 14px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #depositButton:hover {
+      background-color: #e68900;
+    }
+    /* Stacking Section */
+    .stacking-section {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+    #balance {
+      font-size: 18px;
+      margin-bottom: 10px;
+      color: #ff9800;
+      font-weight: bold;
+    }
+    #stackAmount {
+      width: calc(100% - 20px);
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    #stackButton {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff9800;
+      border: none;
+      color: black;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #stackButton:hover {
+      background-color: #e68900;
+    }
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    header h1 {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ff9800;
+    }
+    header .price {
+      font-size: 20px;
+      font-weight: bold;
+    }
+    /* Tabs */
+    .tabs {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .tabs button {
+      flex: 1;
+      padding: 10px;
+      margin: 0 5px;
+      border: none;
+      border-radius: 5px;
+      background-color: #1f1f1f;
+      color: #fff;
+      font-size: 14px;
+      cursor: pointer;
+      position: relative;
+    }
+    .tabs button.active {
+      background-color: #ff9800;
+      color: #0d0d0d;
+    }
+    /* Modal Styles */
+    .modal {
+      display: none; 
+      position: fixed; 
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.5);
+    }
+    .modal-content {
+      background-color:  #333;
+      margin: 15% auto;
+      padding: 20px;
+      border-radius: 5px;
+      width: 80%;
+      max-width: 300px;
+      text-align: center;
+    }
+    .modal-content p {
+      color: white;
+    }
+    .modal-content button {
+      padding: 10px 20px;
+      margin-top: 20px;
+      background-color: #ff9800;
+      border: none;
+      color: black;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .modal-content button:hover {
+      background-color: #e68900;
+    }
+    /* Chart */
+    .chart {
+      background-color: #1f1f1f;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      padding: 10px;
+    }
+    /* Timeframe Buttons */
+    .timeframe-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .timeframe-buttons button {
+      flex: 1;
+      padding: 10px;
+      margin: 0 5px;
+      border: none;
+      border-radius: 5px;
+      background-color: #1f1f1f;
+      color: #fff;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .timeframe-buttons button.active {
+      background-color: #ff9800;
+      color: #0d0d0d;
+    }
+    /* Info Grid */
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .info-grid div {
+      background-color: #1f1f1f;
+      padding: 10px;
+      border-radius: 5px;
+      text-align: center;
+      font-size: 14px;
+    }
+    .info-grid div span {
+      color: #ff9800;
+      font-weight: bold;
+    }
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 30px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: #111;
+      padding: 0.5rem 0;
+      border-top: 1px solid #333;
+      z-index: 1000;
+    }
+    .bottom-nav .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.75rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+      color: #ff9800;
+    }
+    .bottom-nav .nav-btn.active,
+    .bottom-nav .nav-btn:hover {
+      opacity: 1;
+    }
+    /* Only the icon is clickable; style it as needed */
+    .nav-icon {
+      border-radius: 4px;
+      background-color: black;
+      size: 35px;
+      align-items: center;
+      color: #ff9800;
+    }
+    /* Ensure that the text in span is also in #ff9800 */
+    .bottom-nav .nav-btn span {
+      color: white;
+    }
+    /* Icon sizes */
+    .fa-circle-user,
+    .fa-circle-dollar-to-slot,
+    .fa-house {
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Balance Section -->
+    <div class="balance-section">
+      <div class="balance-info">
+        <p id="balance">$0.00</p>
+        <p id="btcBalance">=0.00 BTC</p>
+      </div>
+      <a href="depositing.html">
+        <button id="depositButton">Deposit</button>
+      </a>
+    </div>
+
+    <!-- Header -->
+    <header>
+      <h1>STAKE</h1>
+      <p class="price">$100</p>
+    </header>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="active">Price Chart</button>
+      <button id="investButton">Invest</button>
+      <button>Info</button>
+    </div>
+
+    <!-- Chart -->
+    <canvas id="chart" class="chart"></canvas>
+
+    <!-- Timeframe Buttons -->
+    <div class="timeframe-buttons">
+      <button>24H</button>
+      <button class="active">7D</button>
+      <button>30D</button>
+      <button>3M</button>
+      <button>6M</button>
+      <button>1Y</button>
+      <button>MAX</button>
+    </div>
+
+    <!-- Stacking Section -->
+    <div class="stacking-section">
+      <input id="stackAmount" type="number" placeholder="Enter amount to stack" />
+      <button id="stackButton">STAKE</button>
+    </div>
+
+    <!-- Info Grid -->
+    <div class="info-grid">
+      <div>Open: <span>$73.27</span></div>
+      <div>Volume: <span>$73.27</span></div>
+      <div>Circulating Supply: <span>$73.27</span></div>
+      <div>High: <span>$73.27</span></div>
+      <div>Market Cap: <span>$73.27</span></div>
+      <div>Max Supply: <span>$73.27</span></div>
+      <div>Low: <span>$73.27</span></div>
+      <div>Change: <span>$73.27</span></div>
+      <div>Genesis Date: <span>$73.27</span></div>
+    </div>
+  </div>
+  
+  <!-- BOTTOM NAV (Fixed) -->
+  <div class="bottom-nav">
+    <div class="nav-btn">
+      <a href="home.html" class="nav-icon"><i class="fa-solid fa-house"></i></a>
+      <span>Home</span>
+    </div>
+    <div class="nav-btn">
+      <a href="user.html" class="nav-icon"><i class="fa-solid fa-circle-dollar-to-slot"></i></a>
+      <span>Redeem</span>
+    </div>
+    <div class="nav-btn active">
+      <a href="profile.html" class="nav-icon"><i class="fa-solid fa-circle-user"></i></a>
+      <span>Profile</span>
+    </div>
+  </div>
+  
+  <!-- Modal Pop-Up -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <p id="modalMessage"></p>
+      <button id="modalOkButton">OK</button>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/";
+    let userBalance = 0; 
+    let btcConversionRate = 35000; // Default BTC to USD rate
+    let userKey = localStorage.getItem("userKey");
+
+    const balanceDisplay = document.getElementById("balance");
+    const btcBalanceDisplay = document.getElementById("btcBalance");
+    const stackInput = document.getElementById("stackAmount");
+    const stackButton = document.getElementById("stackButton");
+    const ctx = document.getElementById('chart').getContext('2d');
+    const investButton = document.getElementById("investButton");
+    const modal = document.getElementById("modal");
+    const modalMessage = document.getElementById("modalMessage");
+    const modalOkButton = document.getElementById("modalOkButton");
+
+    // Invest button event listener to show modal pop-up
+    investButton.addEventListener("click", () => {
+      if (userBalance >= 5000) {
+        modalMessage.textContent = "Complete your verification to be eligible for this feature";
+      } else {
+        modalMessage.textContent = "This feature is only available for the verified users and the VIP users (users with at least 5k balance)";
+      }
+      modal.style.display = "block";
+    });
+
+    // OK button in modal to close the pop-up
+    modalOkButton.addEventListener("click", () => {
+      modal.style.display = "none";
+    });
+
+    async function fetchUserBalance() {
+      if (!userKey) {
+        alert("User not logged in!");
+        return;
+      }
+      try {
+        const res = await fetch(`${DB_URL}users/${userKey}/balance.json`);
+        const balance = await res.json();
+        userBalance = balance || 0;
+        updateBalanceDisplay();
+      } catch (error) {
+        console.error("Error fetching balance:", error);
+      }
+    }
+
+    async function fetchBTCPrice() {
+      try {
+        const res = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd");
+        const data = await res.json();
+        btcConversionRate = data.bitcoin.usd;
+        updateBalanceDisplay();
+      } catch (error) {
+        console.error("Error fetching BTC price:", error);
+      }
+    }
+
+    function updateBalanceDisplay() {
+      balanceDisplay.textContent = `$${userBalance.toFixed(2)}`;
+      const btcBalance = (userBalance / btcConversionRate).toFixed(6);
+      btcBalanceDisplay.textContent = `≈ ${btcBalance} BTC`;
+    }
+
+    let data = {
+      labels: [],
+      datasets: [{
+        label: 'Price',
+        data: [],
+        backgroundColor: 'rgba(255, 152, 0, 0.2)',
+        borderColor: '#ff9800',
+        borderWidth: 2,
+        fill: true,
+      }]
+    };
+
+    const chart = new Chart(ctx, {
+      type: 'line',
+      data: data,
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { display: false },
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#fff' },
+          },
+          y: {
+            grid: { color: '#555' },
+            ticks: { color: '#fff' },
+          },
+        },
+      }
+    });
+
+    function simulateChartMovement(amount) {
+      let timeElapsed = 0;
+      const totalDuration = 40;
+      const interval = 1000;
+      let currentStack = amount;
+
+      data.labels = [];
+      data.datasets[0].data = [];
+
+      const intervalId = setInterval(() => {
+        timeElapsed++;
+        const randomChange = (Math.random() - 0.5) * 2;
+        currentStack = Math.max(0, currentStack + randomChange);
+
+        data.labels.push(`T+${timeElapsed}s`);
+        data.datasets[0].data.push(currentStack.toFixed(2));
+        chart.update();
+
+        if (timeElapsed >= totalDuration) {
+          clearInterval(intervalId);
+          const finalAmount = amount - Math.random() * (amount * 0.5);
+          userBalance += finalAmount;
+          updateBalanceDisplay();
+          saveBalance();
+          alert(`Stacking finished. You earned $${finalAmount.toFixed(2)}!`);
+        }
+      }, interval);
+    }
+
+    stackButton.addEventListener("click", () => {
+      const stackAmount = parseFloat(stackInput.value);
+      if (isNaN(stackAmount) || stackAmount <= 99) {
+        alert("The value is below the lower limit. Min. 100");
+        return;
+      }
+      if (stackAmount > userBalance) {
+        alert("Insufficient balance.");
+        return;
+      }
+      userBalance -= stackAmount;
+      updateBalanceDisplay();
+      saveBalance();
+      simulateChartMovement(stackAmount);
+    });
+
+    async function saveBalance() {
+      if (!userKey) return;
+      try {
+        await fetch(`${DB_URL}users/${userKey}/balance.json`, {
+          method: "PUT",
+          body: JSON.stringify(userBalance),
+          headers: { "Content-Type": "application/json" }
+        });
+      } catch (error) {
+        console.error("Error updating balance:", error);
+      }
+    }
+
+    async function autoUpdateBTCBalance() {
+      await fetchBTCPrice();
+      updateBalanceDisplay();
+    }
+
+    // Fetch user balance and BTC price initially
+    fetchUserBalance();
+    fetchBTCPrice();
+
+    // Auto update balance from Firebase every 5 seconds
+    setInterval(fetchUserBalance, 5000);
+
+    // Auto update BTC price every 30 seconds
+    setInterval(autoUpdateBTCBalance, 30000);
+  </script>
+</body>
+</html>

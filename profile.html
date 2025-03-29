@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile Page</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" 
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" 
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <style>
+    /* RESET & BASE STYLES */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Helvetica", "Arial", sans-serif;
+    }
+    body {
+      background-color: #000;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    a {
+      text-decoration: none;
+      color: inherit;
+    }
+    button {
+      cursor: pointer;
+      border: none;
+      outline: none;
+    }
+    /* TOP NAVIGATION */
+    .top-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: #ff9800;
+      padding: 0.75rem 1rem;
+    }
+    .top-nav-left {
+      display: flex;
+      gap: 1rem;
+    }
+    .nav-item {
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-weight: 500;
+      color: #fff;
+      transition: background-color 0.2s, opacity 0.2s;
+    }
+    .nav-item.active {
+      background-color: #e88e00;
+    }
+    .nav-item:hover {
+      background-color: #e88e00;
+    }
+    .top-nav-right {
+      font-weight: 600;
+      color: #fff;
+    }
+    /* MAIN CONTENT */
+    .main-content {
+      flex: 1;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .page-title {
+      text-align: center;
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin-top: 1rem;
+      margin-bottom: 1rem;
+    }
+    .profile-card {
+      background-color: #1a1a1a;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .user-row {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    .user-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: #333;
+    }
+    .user-email {
+      font-weight: 500;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 0.5rem;
+    }
+    .balance-label {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .balance-amount {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #ff9800;
+    }
+    .btn-group {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .btn {
+      background-color: #ff9800;
+      color: #000;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    .btn:hover {
+      background-color: #e88e00;
+    }
+    .kyc-row {
+      display: flex;
+      justify-content: space-between;
+      background-color: #1a1a1a;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      align-items: center;
+    }
+    .kyc-row span {
+      font-size: 0.95rem;
+    }
+    .kyc-status {
+      color: #ff5252;
+      font-weight: 600;
+    }
+    .vip-card {
+      background-color: #1a1a1a;
+      border-radius: 8px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .vip-title {
+      font-weight: 600;
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: #ff9800;
+    }
+    .vip-text {
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    .bonuses-card {
+      background-color: #1a1a1a;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .bonuses-card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #ff9800;
+    }
+    .bonuses-card p {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    .logout-row {
+      text-align: center;
+      margin-bottom: 1rem;
+    }
+    .logout-btn {
+      background-color: #f44336;
+      color: #fff;
+      padding: 0.6rem 1.5rem;
+      border-radius: 4px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+    }
+    .logout-btn:hover {
+      background-color: #d32f2f;
+    }
+    /* BOTTOM NAV */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 40px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      background-color: #111;
+      padding: 0.5rem 0;
+      border-top: 1px solid #333;
+    }
+    .bottom-nav .nav-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      font-size: 0.75rem;
+      opacity: 0.8;
+      transition: opacity 0.2s;
+    }
+    .bottom-nav .nav-btn.active,
+    .bottom-nav .nav-btn:hover {
+      opacity: 1;
+    }
+    .nav-icon {
+      size: 35px;
+      border-radius: 4px;
+      background-color: black;
+      color: #ff9800;
+    }
+  </style>
+</head>
+<body>
+  <!-- TOP NAV -->
+  <div class="top-nav">
+    <div class="top-nav-left">
+      <div class="nav-item active">Profile</div>
+      <div class="nav-item">Deposit</div>
+      <div class="nav-item">Withdraw</div>
+      <div class="nav-item">Bonuses</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+    <div class="page-title">PROFILE</div>
+
+    <!-- Profile Card -->
+    <div class="profile-card">
+      <div class="user-row">
+        <div class="user-avatar"></div>
+        <!-- User email updated from Firebase -->
+        <div class="user-email" id="userEmail">Loading...</div>
+      </div>
+
+      <div class="balance-row">
+        <div>
+          <div class="balance-label">Your balance</div>
+          <!-- Balance amount updated from Firebase -->
+          <div class="balance-amount" id="balanceAmount">$0.00</div>
+        </div>
+        <div class="btn-group">
+          <a href="depositing.html">
+            <button class="btn" id="depositBtn">Deposit</button>
+          </a>
+          <a href="withdraw.html">
+            <button class="btn" id="withdrawBtn">Withdraw</button>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- KYC Verification -->
+    <a href="kyc.html">
+    <div class="kyc-row">
+      <span>KYC verification</span>
+      <!-- KYC status updated from Firebase -->
+      <span class="kyc-status" id="kycStatus">Loading...</span>
+    </div>
+    </a>
+
+    <!-- VIP Status -->
+    <div class="vip-card">
+      <div class="vip-title">VIP Status</div>
+      <!-- VIP status updated from Firebase -->
+      <div class="vip-text" id="vipStatus">Loading...</div>
+      <div class="vip-text">600 XP to next level</div>
+      <div class="vip-text">Next level bonus $50</div>
+      <div class="vip-text">Available rakeback $0.00</div>
+    </div>
+
+    <!-- Active Bonuses -->
+    <div class="bonuses-card">
+      <h2>Your active bonuses</h2>
+      <p>You do not have any active bonus yet</p>
+    </div>
+
+    <!-- LOGOUT BUTTON -->
+    <div class="logout-row">
+      <button class="logout-btn" id="logoutBtn">Logout</button>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+     <div class="nav-btn">
+       <a href="home.html" class="nav-icon"><i class="fa-solid fa-house"></i></a>
+       <span>Home</span>
+     </div>
+  <div class="nav-btn">
+       <a href="user.html" class="nav-icon"><i class="fa-solid fa-circle-dollar-to-slot"></i></a>
+       <span>Redeem</span>
+     </div>
+  <div class="nav-btn active">
+       <a href="profile.html" class="nav-icon"><i class="fa-solid fa-circle-user"></i></a>
+       <span>Profile</span>
+     </div>
+  </div>
+
+  <!-- JavaScript: Fetch user data using DB_URL -->
+  <script>
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/";
+    
+    let userEmail = localStorage.getItem("userEmail");
+    if (!userEmail) {
+      alert("No user logged in, redirecting to login page.");
+      window.location.href = "index.html";
+    }
+    
+    function sanitizeEmail(email) {
+      return email.replace(/\./g, ",");
+    }
+    let userKey = sanitizeEmail(userEmail);
+    
+    fetch(DB_URL + "users/" + userKey + ".json")
+      .then(response => response.json())
+      .then(data => {
+        console.log("Fetched user data:", data);
+        if (data) {
+          document.getElementById("userEmail").textContent = data.email || "No email";
+          let balance = parseFloat(data.balance) || 0;
+          document.getElementById("balanceAmount").textContent = "$" + balance.toFixed(2);
+          // Use kycStatus from database; if missing, default to "Unverified"
+          document.getElementById("kycStatus").textContent = data.kycStatus || "Unverified";
+          document.getElementById("vipStatus").textContent = data.vipStatus || "Bronze";
+        } else {
+          console.error("No user data found for key: " + userKey);
+          document.getElementById("kycStatus").textContent = "No data";
+        }
+      })
+      .catch(error => {
+        console.error("Error fetching user data:", error);
+        document.getElementById("kycStatus").textContent = "Error";
+      });
+    
+    document.getElementById("logoutBtn").addEventListener("click", function() {
+      localStorage.removeItem("userEmail");
+      localStorage.removeItem("userKey");
+      alert("You have been logged out.");
+      window.location.href = "login.html";
+    });
+    
+    document.getElementById("depositBtn").addEventListener("click", function() {
+      alert("Redirecting to deposit page...");
+      window.location.href = "deposit.html";
+    });
+  </script>
+</body>
+</html>
