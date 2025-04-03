@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>PeerJS Video Call Demo with File Streaming, Pause/Resume</title>
+  <style>
+    /* Basic reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    /* Background video container fills the entire window */
+    #background-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1;
+    }
+    #background-video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    /* Main container for video call UI */
+    #video-call-container {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+      color: #fff;
+    }
+    #myId, #callStatus {
+      margin: 0.5rem;
+      font-size: 1.1rem;
+    }
+    /* Call controls */
+    #controls {
+      margin-bottom: 1rem;
+    }
+    #peerIdInput, #videoFileInput {
+      padding: 0.5rem;
+      font-size: 1rem;
+      margin: 0.2rem;
+    }
+    #callBtn, #endCallBtn, #pauseResumeBtn {
+      padding: 0.6rem 1rem;
+      font-size: 1rem;
+      margin: 0.2rem;
+      cursor: pointer;
+    }
+    /* Container for video elements */
+    #videos {
+      width: 80%;
+      max-width: 900px;
+      height: 60vh;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      background: rgba(0, 0, 0, 0.5);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    video {
+      width: 45%;
+      height: auto;
+      background: #000;
+      border: 2px solid #ccc;
+      border-radius: 4px;
+    }
+    /* Hide the offscreen video used for file streaming */
+    #fileVideo {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background video container -->
+  <div id="background-container">
+    <!-- Replace the source below with your own video if desired -->
+    <video id="background-video" src="https://www.w3schools.com/howto/rain.mp4" autoplay muted loop></video>
+  </div>
+
+  <!-- Main UI -->
+  <div id="video-call-container">
+    <div id="myId">Your ID: <span id="peer-id"></span></div>
+    
+    <div id="controls">
+      <input id="peerIdInput" type="text" placeholder="Enter peer ID to call" />
+      <button id="callBtn">Call Peer</button>
+      <button id="endCallBtn">End Call</button>
+      <button id="pauseResumeBtn" disabled>Pause Video</button>
+    </div>
+    
+    <div id="fileControls">
+      <label for="videoFileInput">Or select a video file to stream:</label>
+      <input id="videoFileInput" type="file" accept="video/*" />
+    </div>
+    
+    <div id="callStatus"></div>
+    
+    <div id="videos">
+      <video id="localVideo" autoplay muted playsinline></video>
+      <video id="remoteVideo" autoplay playsinline></video>
+    </div>
+  </div>
+
+  <!-- Hidden video element used to play the selected file and capture its stream -->
+  <video id="fileVideo" playsinline muted></video>
+
+  <!-- PeerJS library from CDN -->
+  <script src="https://unpkg.com/peerjs@1.3.2/dist/peerjs.min.js"></script>
+  <script>
+    // Get elements
+    const peerIdDisplay = document.getElementById('peer-id');
+    const peerIdInput = document.getElementById('peerIdInput');
+    const callBtn = document.getElementById('callBtn');
+    const endCallBtn = document.getElementById('endCallBtn');
+    const pauseResumeBtn = document.getElementById('pauseResumeBtn');
+    const callStatus = document.getElementById('callStatus');
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const videoFileInput = document.getElementById('videoFileInput');
+    const fileVideo = document.getElementById('fileVideo');
+
+    // Create a new Peer with a random ID using the free PeerJS cloud server.
+    const peer = new Peer();
+
+    // Store the media stream and current call instance
+    let localStream;
+    let currentCall = null;
+    // Flag to track if we're using file stream
+    let isFileStream = false;
+
+    // When our peer is open, display our ID
+    peer.on('open', id => {
+      peerIdDisplay.textContent = id;
+      callStatus.textContent = "Waiting for calls...";
+      console.log("My peer ID is:", id);
+    });
+
+    // Get user media from the camera by default
+    async function getCameraStream() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        console.log("Default camera stream acquired.");
+        return stream;
+      } catch (error) {
+        console.error('Error accessing camera and microphone.', error);
+        alert('Could not access camera and/or microphone.');
+      }
+    }
+
+    // Set up the default camera stream if no other stream is selected
+    async function setupDefaultStream() {
+      if (!localStream) {
+        localStream = await getCameraStream();
+        localVideo.srcObject = localStream;
+        isFileStream = false;
+      }
+    }
+    // Initialize with camera stream.
+    setupDefaultStream();
+
+    // Function to update tracks in an active call if stream changes.
+    function updateActiveCallTracks(newStream) {
+      if (currentCall && currentCall.peerConnection) {
+        newStream.getTracks().forEach(newTrack => {
+          const sender = currentCall.peerConnection.getSenders().find(s => s.track && s.track.kind === newTrack.kind);
+          if (sender) {
+            sender.replaceTrack(newTrack);
+            console.log(`Replaced ${newTrack.kind} track in active call.`);
+          }
+        });
+      }
+    }
+
+    // When a file is selected, use it as the stream source
+    videoFileInput.addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (file) {
+        const fileURL = URL.createObjectURL(file);
+        fileVideo.src = fileURL;
+        // Enable pause/resume button for file stream control
+        pauseResumeBtn.disabled = false;
+        pauseResumeBtn.textContent = "Pause Video";
+        // Wait until the metadata is loaded
+        fileVideo.addEventListener('loadedmetadata', () => {
+          fileVideo.play().then(() => {
+            // Capture the stream from the playing video file
+            const fileStream = fileVideo.captureStream();
+            if (fileStream) {
+              localStream = fileStream;
+              localVideo.srcObject = localStream;
+              isFileStream = true;
+              callStatus.textContent = "Streaming selected video file.";
+              console.log("File stream captured.");
+              // If there's an active call, update its tracks
+              updateActiveCallTracks(fileStream);
+            } else {
+              console.error("Failed to capture file stream.");
+            }
+          }).catch(err => {
+            console.error("Error playing the file video:", err);
+          });
+        }, { once: true });
+      }
+    });
+
+    // Pause/Resume button handler
+    pauseResumeBtn.addEventListener('click', () => {
+      if (!isFileStream) return; // Only applicable when using a file stream
+      if (fileVideo.paused) {
+        fileVideo.play();
+        pauseResumeBtn.textContent = "Pause Video";
+        console.log("Resumed video file.");
+      } else {
+        fileVideo.pause();
+        pauseResumeBtn.textContent = "Resume Video";
+        console.log("Paused video file.");
+      }
+    });
+
+    // Handle incoming calls
+    peer.on('call', call => {
+      console.log("Incoming call from:", call.peer);
+      // Answer the call with our current localStream (camera or video file)
+      call.answer(localStream);
+      currentCall = call;
+      call.on('stream', remoteStream => {
+        remoteVideo.srcObject = remoteStream;
+        callStatus.textContent = "Call connected with: " + call.peer;
+        console.log("Received remote stream from", call.peer);
+      });
+      call.on('close', () => {
+        callStatus.textContent = "Call ended.";
+        currentCall = null;
+      });
+      call.on('error', err => {
+        console.error('Call error:', err);
+        callStatus.textContent = "Call error.";
+        currentCall = null;
+      });
+    });
+
+    // Call button handler: call the peer whose ID is entered
+    callBtn.addEventListener('click', () => {
+      const otherPeerId = peerIdInput.value.trim();
+      if (!otherPeerId) {
+        alert("Please enter a valid peer ID to call.");
+        return;
+      }
+      if (!localStream) {
+        alert("Local stream not available. Please allow camera access or select a video file.");
+        return;
+      }
+      console.log("Calling peer:", otherPeerId);
+      callStatus.textContent = "Calling peer: " + otherPeerId + "...";
+      const call = peer.call(otherPeerId, localStream);
+      currentCall = call;
+      call.on('stream', remoteStream => {
+        remoteVideo.srcObject = remoteStream;
+        callStatus.textContent = "Call connected with: " + otherPeerId;
+        console.log("Received remote stream from", otherPeerId);
+      });
+      call.on('close', () => {
+        callStatus.textContent = "Call ended.";
+        currentCall = null;
+      });
+      call.on('error', err => {
+        console.error('Call error:', err);
+        callStatus.textContent = "Call error.";
+        currentCall = null;
+      });
+    });
+
+    // End Call button handler
+    endCallBtn.addEventListener('click', () => {
+      if (currentCall) {
+        currentCall.close();
+        currentCall = null;
+        callStatus.textContent = "Call ended.";
+        remoteVideo.srcObject = null;
+        console.log("Call ended.");
+      } else {
+        alert("No active call to end.");
+      }
+    });
+
+    // Optional: Listen for any peer errors
+    peer.on('error', err => {
+      console.error("Peer error:", err);
+      callStatus.textContent = "Peer error: " + err;
+    });
+  </script>
+</body>
+</html>
