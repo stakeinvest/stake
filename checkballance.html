@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <!-- Prevent mobile zooming -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Voucher Balance Checker</title>
+  <style>
+    /* Basic Resets */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+    body { background-color: #050201; color: #fff; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+
+    /* === Original Entry Screen Styles === */
+    .container {
+      max-width: 400px;
+      width: 100%;
+      background-color: #111;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      margin-top: 50px;
+    }
+    .container h2 {
+      margin-bottom: 20px;
+      color: #ff9800;
+    }
+    .logo {
+      width: 150px;
+      margin: 0 auto 20px;
+      display: block;
+    }
+    .container input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      font-size: 16px;
+      border: 2px solid #ff9800;
+      border-radius: 5px;
+      background-color: #222;
+      color: #fff;
+    }
+    .container button {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      background-color: #ff9800;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      color: #000;
+      cursor: pointer;
+    }
+    .container button:hover { background-color: #ffad08; }
+
+    /* === Gift‑Card Screen Styles === */
+    #giftCardScreen {
+      display: none;
+      position: relative;
+      width: 100%;
+      max-width: 400px;
+      background: #111;
+      border-radius: 8px;
+      padding: 20px;
+      text-align: center;
+      margin-top: 50px;
+    }
+    #giftCardScreen h2 { margin-top: 1rem; color: #ff9800; font-size: 1.25rem; }
+    #giftCardScreen .subtitle { opacity: 0.8; margin-bottom: .5rem; }
+    #giftCardScreen .balance {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 1rem 0 2rem;
+    }
+    #giftCardScreen .voucher-code {
+      opacity: 0.7;
+      font-size: 0.9rem;
+      margin-bottom: 1.5rem;
+    }
+    #giftCardScreen button {
+      width: 100%;
+      padding: 10px;
+      margin: 15px 0;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #ff9800;
+      color: #000;
+    }
+    #giftCardScreen button:hover { background-color: #ffad08; }
+    #giftCardScreen .terms-link {
+      display: block;
+      margin-top: 1rem;
+      color: #ff9800;
+      text-decoration: none;
+      font-size: 0.85rem;
+    }
+
+    /* Back Button (outside container) */
+    #backBtn {
+      display: none;
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      z-index: 1000;
+    }
+
+    /* Modal Notice */
+    .modal-notice {
+      display: none;
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .modal-notice .notice-content {
+      background: #111;
+      padding: 20px;
+      border: 2px solid #ff9800;
+      border-radius: 8px;
+      text-align: center;
+      max-width: 90%;
+    }
+    .modal-notice .notice-content p {
+      color: #ff9800;
+      margin-bottom: 1rem;
+    }
+    .modal-notice .notice-content button {
+      background: #ff9800;
+      color: #000;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .modal-notice .notice-content button:hover {
+      background-color: #ffad08;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back Button (now outside) -->
+  <button id="backBtn">←</button>
+
+  <!-- === Entry Screen (original layout) === -->
+  <div id="entryScreen" class="container">
+    <h2>Voucher Balance Checker</h2>
+    <img src="stakelogo.png" alt="Stake Logo" class="logo" />
+    <input type="text" id="voucherCode" placeholder="Enter Voucher Code" />
+    <button id="checkVoucherButton">Check Balance</button>
+  </div>
+
+  <!-- === Gift‑Card Display Screen === -->
+  <div id="giftCardScreen" class="card">
+    <h2>Check your gift card balance</h2>
+    <p class="subtitle">Your gift card balance</p>
+    <div class="balance" id="balanceAmount">$0.00</div>
+    <div class="voucher-code" id="displayVoucher">Voucher: —</div>
+    <button id="anotherBtn">Check another voucher</button>
+    <p style="opacity:.8;font-size:.85rem; margin-top:1rem;">
+      Your gift card balance never expires and is non‑transferable after its first use.
+    </p>
+    <a href="#" class="terms-link">Read the full terms and conditions</a>
+  </div>
+
+  <!-- === Modal for Notices === -->
+  <div id="modalNotice" class="modal-notice">
+    <div class="notice-content">
+      <p id="noticeMessage">Notice text goes here</p>
+      <button onclick="closeNotice()">OK</button>
+    </div>
+  </div>
+
+  <script>
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/";
+    const entryScreen    = document.getElementById("entryScreen");
+    const giftCardScreen = document.getElementById("giftCardScreen");
+    const balanceEl      = document.getElementById("balanceAmount");
+    const displayVoucher = document.getElementById("displayVoucher");
+    const backBtn        = document.getElementById("backBtn");
+
+    function showNotice(msg) {
+      document.getElementById("noticeMessage").textContent = msg;
+      document.getElementById("modalNotice").style.display = "flex";
+      setTimeout(closeNotice, 3000);
+    }
+    function closeNotice() {
+      document.getElementById("modalNotice").style.display = "none";
+    }
+
+    document.getElementById("checkVoucherButton").addEventListener("click", () => {
+      const voucher = document.getElementById("voucherCode").value.trim();
+      if (!voucher) return showNotice("Please enter a voucher code.");
+
+      fetch(DB_URL + "codes/" + voucher + ".json")
+        .then(res => res.json())
+        .then(data => {
+          if (!data)                                   return showNotice("Invalid voucher code.");
+          if (data.used === true || data.used === "true") return showNotice("This voucher has already been used.");
+          const amt = Number(data.amount);
+          if (isNaN(amt))                              return showNotice("Voucher amount is invalid.");
+
+          balanceEl.textContent = "$" + amt.toFixed(2);
+          displayVoucher.textContent = "Voucher: " + voucher;
+          entryScreen.style.display = "none";
+          giftCardScreen.style.display = "block";
+          backBtn.style.display = "block"; // Show back button
+        })
+        .catch(err => {
+          console.error(err);
+          showNotice("Error retrieving voucher data.");
+        });
+    });
+
+    document.getElementById("anotherBtn").addEventListener("click", () => {
+      giftCardScreen.style.display = "none";
+      entryScreen.style.display = "block";
+      document.getElementById("voucherCode").value = "";
+      backBtn.style.display = "none"; // Hide back button
+    });
+
+    document.getElementById("backBtn").addEventListener("click", () => {
+      document.getElementById("anotherBtn").click();
+    });
+  </script>
+</body>
+</html>
