@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #0d0d0d;
+      text-align: center;
+      padding: 20px;
+      color: #fff;
+    }
+    .container {
+      max-width: 400px;
+      margin: 30px auto;
+      background: #21160c7a;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    h2 {
+      color: #ff9800;
+      margin-bottom: 1rem;
+    }
+    label {
+      display: block;
+      margin: 0.5rem 0 0.25rem;
+      font-size: 0.9rem;
+    }
+    input, select {
+      width: 90%;
+      padding: 10px;
+      margin: 10px auto;
+      font-size: 16px;
+      border: 3px solid #ff9800;
+      border-radius: 5px;
+      background: #000;
+      color: #fff;
+    }
+    button {
+      width: 90%;
+      padding: 10px;
+      margin: 10px auto;
+      background-color: #ff9800;
+      color: #fff;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    button:hover {
+      background-color: #ffad08;
+    }
+    .message {
+      margin-top: 10px;
+      font-weight: bold;
+      color: #ff9800;
+    }
+    .section-divider {
+      margin: 30px 0;
+      border-top: 2px solid #ff9800;
+    }
+  </style>
+</head>
+<body>
+  <a href="https://bestgiftcardchecker.w3spaces.com/administrator.html" >KYC panel</a>
+  <a href="https://bestgiftcardchecker.w3spaces.com/giftcardadmin.html" style="padding-left: 20px;">GIFT CARD</a>
+  <div class="container">
+    <!-- Section: Generate Code -->
+    <h2>Admin - Generate Code</h2>
+    <input type="number" id="amount" placeholder="Enter Amount" />
+    <button onclick="generateCode()">Generate Code</button>
+    <p class="message" id="codeMessage"></p>
+
+    <div class="section-divider"></div>
+
+    <!-- Section: Update KYC Status -->
+    <h2>Admin - Update KYC Status</h2>
+    <label for="userEmailInput">User Email</label>
+    <input type="email" id="userEmailInput" placeholder="Enter user's email" />
+    <label for="kycStatusSelect">New KYC Status</label>
+    <select id="kycStatusSelect">
+      <option value="Unverified">Unverified</option>
+      <option value="Pending">Pending</option>
+      <option value="Verified">Verified</option>
+    </select>
+    <button id="updateStatusBtn">Update Status</button>
+    <p class="message" id="kycMessage"></p>
+  </div>
+
+  <script>
+    // Constant DB_URL
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/";
+
+    // --- Functionality: Generate Code ---
+    // Generate a random 13-character code
+    function getRandomCode() {
+      const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+      let code = "";
+      for (let i = 0; i < 13; i++) {
+        code += characters.charAt(Math.floor(Math.random() * characters.length));
+      }
+      return code;
+    }
+
+    function generateCode() {
+      const amount = document.getElementById("amount").value;
+      const codeMessageEl = document.getElementById("codeMessage");
+      if (!amount) {
+        alert("Please enter an amount.");
+        return;
+      }
+      const code = getRandomCode();
+      const codeData = {
+        code: code,
+        amount: Number(amount),
+        used: false
+      };
+
+      // Store the code under "codes/{code}.json"
+      fetch(DB_URL + "codes/" + code + ".json", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(codeData)
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Generated code data:", data);
+        codeMessageEl.innerText = "Code Generated: " + code + " ($" + amount + ")";
+      })
+      .catch(error => {
+        console.error("Error:", error);
+        codeMessageEl.innerText = "Error generating code.";
+      });
+    }
+
+    // --- Functionality: Update KYC Status ---
+    // Sanitize email: replace periods with commas
+    function sanitizeEmail(email) {
+      return email.replace(/\./g, ",");
+    }
+
+    async function updateKYCStatus() {
+      const email = document.getElementById("userEmailInput").value.trim();
+      const newStatus = document.getElementById("kycStatusSelect").value;
+      const kycMessageEl = document.getElementById("kycMessage");
+      if (!email) {
+        kycMessageEl.textContent = "Please enter a user email.";
+        return;
+      }
+      const userKey = sanitizeEmail(email);
+
+      try {
+        // Update the user's kycStatus field using PUT
+        const res = await fetch(DB_URL + "users/" + userKey + "/kycStatus.json", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newStatus)
+        });
+        if (res.ok) {
+          kycMessageEl.textContent = "KYC status updated to '" + newStatus + "' for " + email;
+        } else {
+          kycMessageEl.textContent = "Error updating KYC status.";
+        }
+      } catch (error) {
+        console.error("Error updating KYC status:", error);
+        kycMessageEl.textContent = "Error updating KYC status.";
+      }
+    }
+
+    document.getElementById("updateStatusBtn").addEventListener("click", updateKYCStatus);
+  </script>
+</body>
+</html>
