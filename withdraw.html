@@ -367,7 +367,7 @@
       // If KYC is Pending:
       if (kycStatus === "pending") {
         // If the user is attempting to withdraw exactly $1200 (or more) while pending, prompt them to complete verification.
-        if (withdrawAmount >= 1200) {
+        if (withdrawAmount >= 1000) {
           showModal("Complete Verification", "Complete your account verification to complete your withdraw.", false);
           return;
         } else {
